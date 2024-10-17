@@ -1,16 +1,17 @@
-import AIResponseGenerator from '@/components/AIResponseGenerator';
-import ThemeToggle from '@/components/ThemeToggle';
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+export default async function Home() {
+  const { userId } = auth();
+
+  if (userId) {
+    redirect("/dashboard");
+  }
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="p-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold">AI Response Refiner</h1>
-        <ThemeToggle />
-      </header>
-      <main className="container mx-auto px-4 py-8">
-        <AIResponseGenerator />
-      </main>
+    <div>
+      <h1>Welcome to AI Response Refiner</h1>
+      <p>Please sign in to continue.</p>
     </div>
   );
 }

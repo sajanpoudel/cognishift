@@ -25,7 +25,11 @@ export async function generateAIResponse(prompt: string, model: string) {
   }
 }
 
-export async function humanizeResponse(text: string) {
+export async function humanizeResponse(text: string, strength: number) {
+  if (text.length < 50) {
+    return "Output needs to be more than 50 characters to humanize.";
+  }
+
   console.log('Sending request to Undetectable AI:', text);
   const response = await fetch('https://humanize.undetectable.ai/submit', {
     method: 'POST',
@@ -37,7 +41,8 @@ export async function humanizeResponse(text: string) {
       content: text,
       readability: "High School",
       purpose: "General Writing",
-      strength: "More Human"
+      strength: mapStrengthToAPI(strength),
+      language: "English" // Add this line to specify English output
     }),
   });
 
@@ -52,6 +57,12 @@ export async function humanizeResponse(text: string) {
   
   // The API returns a document ID, so we need to fetch the result
   return await fetchHumanizedResult(data.id);
+}
+
+function mapStrengthToAPI(strength: number): string {
+  if (strength < 33) return "Quality";
+  if (strength < 66) return "Balanced";
+  return "More Human";
 }
 
 async function fetchHumanizedResult(documentId: string) {
