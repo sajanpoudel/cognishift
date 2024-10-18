@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Loader2, Send, Upload, RotateCcw, Eye, EyeOff } from 'lucide-react';
-import ModelSelector from '@/components/ModelSelector';
+import { Loader2, Send, Upload } from 'lucide-react';
 import { generateAIResponse, humanizeResponse, detectAI } from '@/lib/ai-services';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';

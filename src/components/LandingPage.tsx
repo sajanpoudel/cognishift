@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, useAnimation } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { SignInButton } from "@clerk/nextjs";
-import { Zap, Sparkles, Shield, ArrowRight, Bot, User } from 'lucide-react'
+import { Zap, Sparkles, Shield, Bot, User } from 'lucide-react'
 import Logo from '@/assets/logo.png'
 import Image from 'next/image'
 

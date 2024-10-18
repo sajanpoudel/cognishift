@@ -4,9 +4,8 @@ import { useState, useEffect } from 'react';
 import { Folder, ChevronRight, ChevronDown, ChevronLeft, Plus, MessageSquare, Settings, Edit2, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Draggable } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from '@/components/StrictModeDroppable';
-import Logo from '@/assets/logo.png';
 
 interface Chat {
   id: string;
