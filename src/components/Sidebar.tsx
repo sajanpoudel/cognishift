@@ -148,10 +148,8 @@ export default function Sidebar({ folders, setFolders, activeChat, setActiveChat
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className={`bg-secondary p-4 transition-all duration-300 ${isExpanded ? 'w-64' : 'w-16'}`}>
-        <Button onClick={toggleSidebar} variant="ghost" className="mb-4 w-full justify-start">
-          {isExpanded ? <ChevronLeft /> : <ChevronRight />}
-        </Button>
+      <div className={`p-4 transition-all duration-300 ${isExpanded ? 'w-64' : 'w-16'}`}>
+        
         
         {isExpanded && (
           <>

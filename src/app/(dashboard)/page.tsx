@@ -9,7 +9,7 @@ interface Chat {
   id: string;
   name: string;
 }
-
+                                                                                                                                                                                    
 export default function Dashboard() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChat, setActiveChat] = useState<string | null>(null);

@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Loader2, Send, Upload, RotateCcw, Eye, EyeOff } from 'lucide-react';
-import ModelSelector from '@/components/ModelSelector';
+import { Loader2, Send, Upload } from 'lucide-react';
 import { generateAIResponse, humanizeResponse, detectAI } from '@/lib/ai-services';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,12 +18,21 @@ interface Message {
 
 interface AIResponseGeneratorProps {
   chatId: string;
+  selectedModel: string;
+  undetectableApiKey: string;
+  openAIApiKey: string;
+  geminiApiKey: string;
 }
 
-export default function AIResponseGenerator({ chatId }: AIResponseGeneratorProps) {
+export default function AIResponseGenerator({ 
+  chatId, 
+  selectedModel, 
+  undetectableApiKey,
+  openAIApiKey,
+  geminiApiKey
+}: AIResponseGeneratorProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [selectedModel, setSelectedModel] = useState('openai');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [file, setFile] = useState<File | null>(null);
@@ -67,15 +75,15 @@ export default function AIResponseGenerator({ chatId }: AIResponseGeneratorProps
 
     try {
       setGenerationProgress(33);
-      const aiResponse = await generateAIResponse(input || await file!.text(), selectedModel);
+      const aiResponse = await generateAIResponse(
+        input || await file!.text(), 
+        selectedModel, 
+        openAIApiKey, 
+        geminiApiKey
+      );
       
       setGenerationProgress(66);
-      let humanizedResponse: string;
-      if (aiResponse.length < 50) {
-        humanizedResponse = "Output needs to be more than 50 characters to humanize.";
-      } else {
-        humanizedResponse = await humanizeResponse(aiResponse, 50);
-      }
+      const humanizedResponse = await humanizeResponse(aiResponse, undetectableApiKey);
       
       setGenerationProgress(90);
       const aiScore = await detectAI(humanizedResponse);
@@ -87,7 +95,7 @@ export default function AIResponseGenerator({ chatId }: AIResponseGeneratorProps
         humanizedContent: humanizedResponse, 
         aiScore: aiScore,
         originalAiScore: originalAiScore,
-        showAI: aiResponse.length < 50 // Show AI text by default if less than 50 characters
+        showAI: false 
       };
       setMessages(prev => [...prev, newAiMessage]);
 
@@ -122,20 +130,16 @@ export default function AIResponseGenerator({ chatId }: AIResponseGeneratorProps
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center mb-4">
-        <ModelSelector selectedModel={selectedModel} onSelectModel={setSelectedModel} />
-      </div>
-
-      <div className="flex-1 overflow-y-auto space-y-4 p-4 border rounded-lg mb-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message, index) => (
           <div key={index} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[70%] p-3 rounded-lg ${
-              message.type === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary'
+              message.type === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
             }`}>
               <p>{message.showAI ? message.content : message.humanizedContent}</p>
               {message.type === 'ai' && (
                 <>
-                  <p className="text-xs mt-2">
+                  <p className="text-xs mt-2 text-gray-600 dark:text-gray-400">
                     AI Score: {message.showAI 
                       ? `${(message.originalAiScore * 100).toFixed(2)}%`
                       : `${(message.aiScore * 100).toFixed(2)}%`
@@ -145,7 +149,7 @@ export default function AIResponseGenerator({ chatId }: AIResponseGeneratorProps
                     variant="ghost"
                     size="sm"
                     onClick={() => toggleAIView(index)}
-                    className="mt-2"
+                    className="mt-2 text-xs"
                   >
                     {message.showAI ? 'Show Humanized' : 'Show AI'}
                   </Button>
@@ -157,9 +161,9 @@ export default function AIResponseGenerator({ chatId }: AIResponseGeneratorProps
       </div>
 
       {isGenerating && (
-        <div className="mb-4">
+        <div className="p-4">
           <Progress value={generationProgress} className="w-full" />
-          <p className="text-sm text-center mt-2">
+          <p className="text-sm text-center mt-2 text-gray-600 dark:text-gray-400">
             {generationProgress < 33 ? 'Generating AI response...' :
              generationProgress < 66 ? 'Humanizing response...' :
              generationProgress < 90 ? 'Verifying AI presence...' : 'Finalizing...'}
@@ -167,24 +171,32 @@ export default function AIResponseGenerator({ chatId }: AIResponseGeneratorProps
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="flex items-center space-x-2">
-        <div className="relative flex-1">
+      <form onSubmit={handleSubmit} className="p-4">
+        <div className="relative">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message or upload a file..."
-            className="pr-10"
-            rows={1}
+            className="pr-24 resize-none"
+            rows={3}
           />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="absolute right-2 top-1/2 transform -translate-y-1/2"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Upload className="h-4 w-4" />
-          </Button>
+          <div className="absolute right-2 bottom-2 flex space-x-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="h-4 w-4" />
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isGenerating} 
+              size="sm"
+            >
+              {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            </Button>
+          </div>
           <input
             type="file"
             ref={fileInputRef}
@@ -192,12 +204,6 @@ export default function AIResponseGenerator({ chatId }: AIResponseGeneratorProps
             className="hidden"
           />
         </div>
-        <Button type="submit" disabled={isGenerating}>
-          {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-        </Button>
-        <Button type="button" variant="outline" onClick={() => setMessages([])}>
-          <RotateCcw className="h-4 w-4" />
-        </Button>
       </form>
     </div>
   );
