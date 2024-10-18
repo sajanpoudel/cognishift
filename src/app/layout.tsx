@@ -5,8 +5,8 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 
 
 export const metadata: Metadata = {
-  title: "AI Response Refiner",
-  description: "Enhance your writing with AI",
+  title: "Cognishift - Humanify in one click",
+  description: "Transform AI-generated content into human-like text with just one click.",
 };
 
 export default function RootLayout({

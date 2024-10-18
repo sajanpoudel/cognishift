@@ -3,11 +3,9 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
-import LandingPage from '@/components/LandingPage';
+import LandingPage from '@/components/LandingPage'
 
-
-
-export default function Home() {
+export default function ClientPage() {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useUser();
 
