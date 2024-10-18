@@ -29,18 +29,23 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <ClerkProvider>
-      <html lang="en" suppressHydrationWarning className={poppins.variable}>
-        <body className="font-poppins antialiased">
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <html lang="en">
+        <body>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
             {children}
           </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>
-  );
+  )
 }

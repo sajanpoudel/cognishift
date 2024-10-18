@@ -1,17 +1,23 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
+'use client';
 
-export default async function Home() {
-  const { userId } = auth();
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useUser } from '@clerk/nextjs';
+import LandingPage from '@/components/LandingPage';
 
-  if (userId) {
-    redirect("/dashboard");
+export default function Home() {
+  const router = useRouter();
+  const { isLoaded, isSignedIn } = useUser();
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.push('/dashboard');
+    }
+  }, [isLoaded, isSignedIn, router]);
+
+  if (!isLoaded || isSignedIn) {
+    return null; // or a loading spinner
   }
 
-  return (
-    <div>
-      <h1>Welcome to AI Response Refiner</h1>
-      <p>Please sign in to continue.</p>
-    </div>
-  );
+  return <LandingPage />;
 }

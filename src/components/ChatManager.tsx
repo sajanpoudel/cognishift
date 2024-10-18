@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { UserButton } from "@clerk/nextjs";
 import AIResponseGenerator from '@/components/AIResponseGenerator';
 import Sidebar from '@/components/Sidebar';
 import { Menu, X, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { UserButton } from "@clerk/nextjs";
 import ThemeToggle from "@/components/ThemeToggle";
 import ModelSelector from '@/components/ModelSelector';
 import {
@@ -41,9 +42,10 @@ export default function ChatManager() {
   const [undetectableApiKey, setUndetectableApiKey] = useState('');
   const [openAIApiKey, setOpenAIApiKey] = useState('');
   const [geminiApiKey, setGeminiApiKey] = useState('');
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [gptzeroApiKey, setGptzeroApiKey] = useState('');
   const [saplingApiKey, setSaplingApiKey] = useState('');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const router = useRouter();
 
   useEffect(() => {
     const savedFolders = localStorage.getItem('folders');
@@ -72,21 +74,12 @@ export default function ChatManager() {
     const savedUndetectableApiKey = localStorage.getItem('undetectableApiKey');
     const savedOpenAIApiKey = localStorage.getItem('openAIApiKey');
     const savedGeminiApiKey = localStorage.getItem('geminiApiKey');
-    const savedGptzeroApiKey = localStorage.getItem('gptzeroApiKey');
     const savedSaplingApiKey = localStorage.getItem('saplingApiKey');
 
     if (savedUndetectableApiKey) setUndetectableApiKey(savedUndetectableApiKey);
     if (savedOpenAIApiKey) setOpenAIApiKey(savedOpenAIApiKey);
     if (savedGeminiApiKey) setGeminiApiKey(savedGeminiApiKey);
-    if (savedGptzeroApiKey) setGptzeroApiKey(savedGptzeroApiKey);
     if (savedSaplingApiKey) setSaplingApiKey(savedSaplingApiKey);
-
-    // Log the API keys
-    console.log('Undetectable API Key:', savedUndetectableApiKey);
-    console.log('OpenAI API Key:', savedOpenAIApiKey);
-    console.log('Gemini API Key:', savedGeminiApiKey);
-    console.log('GPTZero API Key:', savedGptzeroApiKey);
-    console.log('Sapling API Key:', savedSaplingApiKey);
   }, []);
 
   const createNewChat = (folderId: string) => {
@@ -106,16 +99,8 @@ export default function ChatManager() {
     localStorage.setItem('undetectableApiKey', undetectableApiKey);
     localStorage.setItem('openAIApiKey', openAIApiKey);
     localStorage.setItem('geminiApiKey', geminiApiKey);
-    localStorage.setItem('gptzeroApiKey', gptzeroApiKey);
     localStorage.setItem('saplingApiKey', saplingApiKey);
     setIsSettingsOpen(false);
-
-    // Log the updated API keys
-    console.log('Updated Undetectable API Key:', undetectableApiKey);
-    console.log('Updated OpenAI API Key:', openAIApiKey);
-    console.log('Updated Gemini API Key:', geminiApiKey);
-    console.log('Updated GPTZero API Key:', gptzeroApiKey);
-    console.log('Updated Sapling API Key:', saplingApiKey);
   };
 
   return (
@@ -149,13 +134,15 @@ export default function ChatManager() {
               <ModelSelector selectedModel={selectedModel} onSelectModel={setSelectedModel} />
               <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline">Settings</Button>
+                  <Button variant="ghost" size="icon">
+                    <Settings className="h-5 w-5" />
+                  </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>API Settings</DialogTitle>
+                    <DialogTitle>Settings</DialogTitle>
                   </DialogHeader>
-                  <div className="grid gap-4 py-4">
+                  <div className="py-4 space-y-4">
                     <div>
                       <label htmlFor="undetectable-api-key" className="text-sm font-medium">
                         Undetectable AI API Key
@@ -192,21 +179,19 @@ export default function ChatManager() {
                         className="mt-1"
                       />
                     </div>
-                 
                     <div>
-                      <label htmlFor="sapling-api" className="text-sm font-medium">
-                        Sapling AI
+                      <label htmlFor="sapling-api-key" className="text-sm font-medium">
+                        Sapling AI API Key
                       </label>
                       <Input
-                        id="sapling-api"
+                        id="sapling-api-key"
                         value={saplingApiKey}
                         onChange={(e) => setSaplingApiKey(e.target.value)}
+                        placeholder="Enter your Sapling AI API key"
                         className="mt-1"
                       />
                     </div>
-                    <Button onClick={saveSettings} disabled={!openAIApiKey && !geminiApiKey}>
-                      Save Settings
-                    </Button>
+                    <Button onClick={saveSettings}>Save Settings</Button>
                   </div>
                 </DialogContent>
               </Dialog>
