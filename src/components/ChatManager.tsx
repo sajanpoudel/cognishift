@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
 import { UserButton } from "@clerk/nextjs";
 import AIResponseGenerator from '@/components/AIResponseGenerator';
 import Sidebar from '@/components/Sidebar';
@@ -45,7 +44,26 @@ export default function ChatManager() {
   const [saplingApiKey, setSaplingApiKey] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  const router = useRouter();
+  const createNewChat = useCallback((folderId: string) => {
+    setFolders(prevFolders => {
+      const folder = prevFolders.find(f => f.id === folderId);
+      if (!folder) return prevFolders;
+      
+      const newChat: Chat = { 
+        id: Date.now().toString(), 
+        name: `Chat ${folder.chats.length + 1}` 
+      };
+      
+      const updatedFolders = prevFolders.map(f => 
+        f.id === folderId 
+          ? { ...f, chats: [...f.chats, newChat] }
+          : f
+      );
+      
+      setActiveChat(newChat.id);
+      return updatedFolders;
+    });
+  }, []); // Remove folders from the dependency array
 
   useEffect(() => {
     const savedFolders = localStorage.getItem('folders');
@@ -61,9 +79,10 @@ export default function ChatManager() {
         createNewChat('default');
       }
     } else {
+      setFolders([{ id: 'default', name: 'All Chats', chats: [], isExpanded: true }]);
       createNewChat('default');
     }
-  }, []);
+  }, [createNewChat]);
 
   useEffect(() => {
     localStorage.setItem('folders', JSON.stringify(folders));
@@ -82,26 +101,13 @@ export default function ChatManager() {
     if (savedSaplingApiKey) setSaplingApiKey(savedSaplingApiKey);
   }, []);
 
-  const createNewChat = (folderId: string) => {
-    const newChat: Chat = { 
-      id: Date.now().toString(), 
-      name: `Chat ${folders.find(f => f.id === folderId)?.chats.length! + 1}` 
-    };
-    setFolders(prevFolders => prevFolders.map(folder => 
-      folder.id === folderId 
-        ? { ...folder, chats: [...folder.chats, newChat] }
-        : folder
-    ));
-    setActiveChat(newChat.id);
-  };
-
-  const saveSettings = () => {
+  const saveSettings = useCallback(() => {
     localStorage.setItem('undetectableApiKey', undetectableApiKey);
     localStorage.setItem('openAIApiKey', openAIApiKey);
     localStorage.setItem('geminiApiKey', geminiApiKey);
     localStorage.setItem('saplingApiKey', saplingApiKey);
     setIsSettingsOpen(false);
-  };
+  }, [undetectableApiKey, openAIApiKey, geminiApiKey, saplingApiKey]);
 
   return (
     <div className="flex h-screen bg-white dark:bg-gray-700">
@@ -134,7 +140,7 @@ export default function ChatManager() {
               <ModelSelector selectedModel={selectedModel} onSelectModel={setSelectedModel} />
               <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" onClick={() => setIsSettingsOpen(true)}>
                     <Settings className="h-5 w-5" />
                   </Button>
                 </DialogTrigger>

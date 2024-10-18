@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Folder, ChevronRight, ChevronDown, ChevronLeft, Plus, MessageSquare, Settings, Edit2, PlusCircle } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Folder, ChevronRight, ChevronDown, MessageSquare, Edit2, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { DragDropContext, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Draggable, DropResult } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from '@/components/StrictModeDroppable';
 
 interface Chat {
@@ -29,7 +29,6 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, folders, setFolders, activeChat, setActiveChat, createNewChat }: SidebarProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
 
@@ -42,25 +41,20 @@ export default function Sidebar({ isOpen, folders, setFolders, activeChat, setAc
         parsedFolders.unshift({ id: 'default', name: 'All Chats', chats: [], isExpanded: true });
       }
       setFolders(parsedFolders);
-    } else {
-      // If no folders exist, create the default folder
-      setFolders([{ id: 'default', name: 'All Chats', chats: [], isExpanded: true }]);
     }
-  }, []);
+  }, [setFolders]); // Add setFolders to the dependency array
 
   useEffect(() => {
     localStorage.setItem('folders', JSON.stringify(folders));
   }, [folders]);
 
-  const toggleSidebar = () => setIsExpanded(!isExpanded);
-
-  const toggleFolder = (folderId: string) => {
-    setFolders(folders.map(folder => 
+  const toggleFolder = useCallback((folderId: string) => {
+    setFolders(prevFolders => prevFolders.map(folder => 
       folder.id === folderId ? { ...folder, isExpanded: !folder.isExpanded } : folder
     ));
-  };
+  }, [setFolders]);
 
-  const addFolder = () => {
+  const addFolder = useCallback(() => {
     const folderNumbers = folders
       .map(folder => {
         const match = folder.name.match(/^Folder (\d+)$/);
@@ -76,30 +70,18 @@ export default function Sidebar({ isOpen, folders, setFolders, activeChat, setAc
       chats: [],
       isExpanded: false,
     };
-    setFolders([...folders, newFolder]);
-  };
+    setFolders(prevFolders => [...prevFolders, newFolder]);
+  }, [folders, setFolders]);
 
-  const addChat = (folderId: string) => {
-    setFolders(folders.map(folder => {
-      if (folder.id === folderId) {
-        const newChat: Chat = {
-          id: Date.now().toString(),
-          name: `New Chat ${folder.chats.length + 1}`,
-        };
-        return { ...folder, chats: [...folder.chats, newChat] };
-      }
-      return folder;
-    }));
-  };
-
-  const startEditing = (id: string, name: string) => {
+  const startEditing = useCallback((id: string, name: string, event: React.MouseEvent) => {
+    event.stopPropagation();
     setEditingId(id);
     setEditingName(name);
-  };
+  }, []);
 
-  const finishEditing = () => {
+  const finishEditing = useCallback(() => {
     if (editingId) {
-      setFolders(folders.map(folder => {
+      setFolders(prevFolders => prevFolders.map(folder => {
         if (folder.id === editingId) {
           return { ...folder, name: editingName };
         }
@@ -112,15 +94,14 @@ export default function Sidebar({ isOpen, folders, setFolders, activeChat, setAc
       }));
     }
     setEditingId(null);
-  };
+    setEditingName('');
+  }, [editingId, editingName, setFolders]);
 
-  const onDragEnd = (result: any) => {
+  const onDragEnd = useCallback((result: DropResult) => {
     const { source, destination } = result;
 
-    // If the item was dropped outside a droppable area
     if (!destination) return;
 
-    // If the item was dropped in the same place
     if (
       source.droppableId === destination.droppableId &&
       source.index === destination.index
@@ -128,31 +109,24 @@ export default function Sidebar({ isOpen, folders, setFolders, activeChat, setAc
       return;
     }
 
-    // Find the source and destination folders
-    const sourceFolder = folders.find(f => f.id === source.droppableId);
-    const destFolder = folders.find(f => f.id === destination.droppableId);
+    setFolders(prevFolders => {
+      const newFolders = [...prevFolders];
+      const sourceFolder = newFolders.find(f => f.id === source.droppableId);
+      const destFolder = newFolders.find(f => f.id === destination.droppableId);
 
-    if (!sourceFolder || !destFolder) return;
+      if (!sourceFolder || !destFolder) return prevFolders;
 
-    // Create a new array of folders
-    const newFolders = [...folders];
+      const [movedChat] = sourceFolder.chats.splice(source.index, 1);
+      destFolder.chats.splice(destination.index, 0, movedChat);
 
-    // Remove the chat from the source folder
-    const [movedChat] = sourceFolder.chats.splice(source.index, 1);
-
-    // Add the chat to the destination folder
-    destFolder.chats.splice(destination.index, 0, movedChat);
-
-    // Update the folders state
-    setFolders(newFolders);
-  };
+      return newFolders;
+    });
+  }, [setFolders]);
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className={`p-4 transition-all duration-300 ${isExpanded ? 'w-64' : 'w-16'}`}>
-        
-        
-        {isExpanded && (
+      <div className={`p-4 transition-all duration-300 ${isOpen ? 'w-64' : 'w-16'}`}>
+        {isOpen && (
           <>
             <Button 
               onClick={addFolder} 
@@ -181,6 +155,7 @@ export default function Sidebar({ isOpen, folders, setFolders, activeChat, setAc
                             onBlur={finishEditing}
                             onKeyPress={(e) => e.key === 'Enter' && finishEditing()}
                             className="w-full"
+                            autoFocus
                           />
                         ) : (
                           <>
@@ -188,10 +163,7 @@ export default function Sidebar({ isOpen, folders, setFolders, activeChat, setAc
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                startEditing(folder.id, folder.name);
-                              }}
+                              onClick={(e) => startEditing(folder.id, folder.name, e)}
                             >
                               <Edit2 className="h-4 w-4" />
                             </Button>
@@ -231,6 +203,7 @@ export default function Sidebar({ isOpen, folders, setFolders, activeChat, setAc
                                       onBlur={finishEditing}
                                       onKeyPress={(e) => e.key === 'Enter' && finishEditing()}
                                       className="w-full text-sm py-0"
+                                      autoFocus
                                     />
                                   ) : (
                                     <>
@@ -239,10 +212,7 @@ export default function Sidebar({ isOpen, folders, setFolders, activeChat, setAc
                                         variant="ghost"
                                         size="sm"
                                         className="p-0 h-5 w-5 min-w-5"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          startEditing(chat.id, chat.name);
-                                        }}
+                                        onClick={(e) => startEditing(chat.id, chat.name, e)}
                                       >
                                         <Edit2 className="h-3 w-3" />
                                       </Button>
@@ -260,8 +230,6 @@ export default function Sidebar({ isOpen, folders, setFolders, activeChat, setAc
                 )}
               </StrictModeDroppable>
             ))}
-            
-        
           </>
         )}
       </div>
