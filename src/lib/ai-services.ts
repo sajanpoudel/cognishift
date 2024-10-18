@@ -3,6 +3,9 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const cache = new Map();
 
+const OPENAI_MODEL = "gpt-3.5-turbo";
+const GEMINI_MODEL = "gemini-pro";
+
 export async function generateAIResponse(
   prompt: string, 
   model: string, 
@@ -20,16 +23,15 @@ export async function generateAIResponse(
     const openai = new OpenAI({ apiKey: openAIApiKey, dangerouslyAllowBrowser: true });
     const completion = await openai.chat.completions.create({
       messages: [{ role: "user", content: prompt }],
-      model: "gpt-3.5-turbo",
+      model: OPENAI_MODEL,
     });
     response = completion.choices[0].message.content;
   } else if (model === 'gemini') {
     if (!geminiApiKey) throw new Error('Gemini API key is not set');
     const genAI = new GoogleGenerativeAI(geminiApiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-pro"});
-    const result = await model.generateContent(prompt);
-     response = await result.response;
-    response = response.text();
+    const geminiModel = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+    const result = await geminiModel.generateContent(prompt);
+    response = result.response.text();
   } else {
     throw new Error('Invalid model selected');
   }
