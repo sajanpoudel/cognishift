@@ -129,12 +129,12 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen text-black bg-gray-100 overflow-hidden font-sans">
       {/* Header with Logo */}
-      <header className="absolute top-0 left-0 p-4">
+      <div className="absolute top-0 left-0 p-4">
   <div className="flex items-center">
     <Image src={Logo} alt="CogniShift Logo" width={40} height={40} />
     <span className="ml-2 text-xl font-bold">CogniShift</span>
   </div>
-</header>
+</div>
 
       {/* Hero Section */}
       <section className="h-screen flex flex-col items-center justify-center px-4 relative z-10">
