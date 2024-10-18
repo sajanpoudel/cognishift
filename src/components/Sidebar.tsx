@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { StrictModeDroppable } from '@/components/StrictModeDroppable';
+import Logo from '@/assets/logo.png';
 
 interface Chat {
   id: string;
@@ -20,6 +21,7 @@ interface Folder {
 }
 
 interface SidebarProps {
+  isOpen: boolean;
   folders: Folder[];
   setFolders: React.Dispatch<React.SetStateAction<Folder[]>>;
   activeChat: string | null;
@@ -27,7 +29,7 @@ interface SidebarProps {
   createNewChat: (folderId: string) => void;
 }
 
-export default function Sidebar({ folders, setFolders, activeChat, setActiveChat, createNewChat }: SidebarProps) {
+export default function Sidebar({ isOpen, folders, setFolders, activeChat, setActiveChat, createNewChat }: SidebarProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
@@ -260,9 +262,7 @@ export default function Sidebar({ folders, setFolders, activeChat, setActiveChat
               </StrictModeDroppable>
             ))}
             
-            <Button variant="ghost" className="w-full justify-start mt-4">
-              <Settings className="mr-2 h-4 w-4" /> Settings
-            </Button>
+        
           </>
         )}
       </div>

@@ -16,6 +16,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import Image from 'next/image';
+import Logo from '@/assets/logo.png'
 
 interface Chat {
   id: string;
@@ -40,6 +42,8 @@ export default function ChatManager() {
   const [openAIApiKey, setOpenAIApiKey] = useState('');
   const [geminiApiKey, setGeminiApiKey] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [gptzeroApiKey, setGptzeroApiKey] = useState('');
+  const [saplingApiKey, setSaplingApiKey] = useState('');
 
   useEffect(() => {
     const savedFolders = localStorage.getItem('folders');
@@ -68,10 +72,21 @@ export default function ChatManager() {
     const savedUndetectableApiKey = localStorage.getItem('undetectableApiKey');
     const savedOpenAIApiKey = localStorage.getItem('openAIApiKey');
     const savedGeminiApiKey = localStorage.getItem('geminiApiKey');
+    const savedGptzeroApiKey = localStorage.getItem('gptzeroApiKey');
+    const savedSaplingApiKey = localStorage.getItem('saplingApiKey');
 
     if (savedUndetectableApiKey) setUndetectableApiKey(savedUndetectableApiKey);
     if (savedOpenAIApiKey) setOpenAIApiKey(savedOpenAIApiKey);
     if (savedGeminiApiKey) setGeminiApiKey(savedGeminiApiKey);
+    if (savedGptzeroApiKey) setGptzeroApiKey(savedGptzeroApiKey);
+    if (savedSaplingApiKey) setSaplingApiKey(savedSaplingApiKey);
+
+    // Log the API keys
+    console.log('Undetectable API Key:', savedUndetectableApiKey);
+    console.log('OpenAI API Key:', savedOpenAIApiKey);
+    console.log('Gemini API Key:', savedGeminiApiKey);
+    console.log('GPTZero API Key:', savedGptzeroApiKey);
+    console.log('Sapling API Key:', savedSaplingApiKey);
   }, []);
 
   const createNewChat = (folderId: string) => {
@@ -91,15 +106,24 @@ export default function ChatManager() {
     localStorage.setItem('undetectableApiKey', undetectableApiKey);
     localStorage.setItem('openAIApiKey', openAIApiKey);
     localStorage.setItem('geminiApiKey', geminiApiKey);
+    localStorage.setItem('gptzeroApiKey', gptzeroApiKey);
+    localStorage.setItem('saplingApiKey', saplingApiKey);
     setIsSettingsOpen(false);
+
+    // Log the updated API keys
+    console.log('Updated Undetectable API Key:', undetectableApiKey);
+    console.log('Updated OpenAI API Key:', openAIApiKey);
+    console.log('Updated Gemini API Key:', geminiApiKey);
+    console.log('Updated GPTZero API Key:', gptzeroApiKey);
+    console.log('Updated Sapling API Key:', saplingApiKey);
   };
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="flex h-screen bg-white dark:bg-gray-700">
       <div className={`${isSidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 ease-in-out bg-gray-200 dark:bg-gray-800`}>
-        <div className="p-4 flex items-center justify-between">
-          <Settings className="h-6 w-6 text-blue-500" />
-          {isSidebarOpen && <span className="font-bold text-lg">Cognishift</span>}
+        <div className="p-4 flex items-center justify-left bg-gray-200 dark:bg-gray-800">
+          <Image src= {Logo} alt="Cognishift Logo" width={40} height={40} />
+          {isSidebarOpen && <span className="font-bold text-lg">CogniShift</span>}
         </div>
         <Sidebar 
           folders={folders} 
@@ -107,6 +131,7 @@ export default function ChatManager() {
           activeChat={activeChat}
           setActiveChat={setActiveChat}
           createNewChat={createNewChat}
+          isOpen={isSidebarOpen}
         />
       </div>
       <div className="flex-1 flex flex-col">
@@ -124,15 +149,13 @@ export default function ChatManager() {
               <ModelSelector selectedModel={selectedModel} onSelectModel={setSelectedModel} />
               <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Settings className="h-5 w-5" />
-                  </Button>
+                  <Button variant="outline">Settings</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Settings</DialogTitle>
+                    <DialogTitle>API Settings</DialogTitle>
                   </DialogHeader>
-                  <div className="py-4 space-y-4">
+                  <div className="grid gap-4 py-4">
                     <div>
                       <label htmlFor="undetectable-api-key" className="text-sm font-medium">
                         Undetectable AI API Key
@@ -169,6 +192,18 @@ export default function ChatManager() {
                         className="mt-1"
                       />
                     </div>
+                 
+                    <div>
+                      <label htmlFor="sapling-api" className="text-sm font-medium">
+                        Sapling AI
+                      </label>
+                      <Input
+                        id="sapling-api"
+                        value={saplingApiKey}
+                        onChange={(e) => setSaplingApiKey(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
                     <Button onClick={saveSettings} disabled={!openAIApiKey && !geminiApiKey}>
                       Save Settings
                     </Button>
@@ -179,7 +214,7 @@ export default function ChatManager() {
               <UserButton afterSignOutUrl="/" />
             </div>
           </header>
-          <main className="flex-1 overflow-hidden p-6">
+          <main className="flex-1 overflow-hidden p-6 bg-white dark:bg-gray-700">
             {activeChat ? (
               <AIResponseGenerator 
                 chatId={activeChat} 
@@ -187,6 +222,7 @@ export default function ChatManager() {
                 undetectableApiKey={undetectableApiKey}
                 openAIApiKey={openAIApiKey}
                 geminiApiKey={geminiApiKey}
+                saplingApiKey={saplingApiKey}
               />
             ) : (
               <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">

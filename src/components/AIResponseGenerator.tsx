@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Loader2, Send, Upload } from 'lucide-react';
+import { Loader2, Send, Upload, RotateCcw, Eye, EyeOff } from 'lucide-react';
+import ModelSelector from '@/components/ModelSelector';
 import { generateAIResponse, humanizeResponse, detectAI } from '@/lib/ai-services';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,6 +23,7 @@ interface AIResponseGeneratorProps {
   undetectableApiKey: string;
   openAIApiKey: string;
   geminiApiKey: string;
+  saplingApiKey: string;
 }
 
 export default function AIResponseGenerator({ 
@@ -29,7 +31,8 @@ export default function AIResponseGenerator({
   selectedModel, 
   undetectableApiKey,
   openAIApiKey,
-  geminiApiKey
+  geminiApiKey,
+  saplingApiKey
 }: AIResponseGeneratorProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -76,18 +79,28 @@ export default function AIResponseGenerator({
     try {
       setGenerationProgress(33);
       const aiResponse = await generateAIResponse(
-        input || await file!.text(), 
+        input || (file ? await file.text() : ''),
         selectedModel, 
-        openAIApiKey, 
-        geminiApiKey
+        openAIApiKey || '',
+        geminiApiKey || ''
       );
       
+      if (!aiResponse) {
+        throw new Error('Failed to generate AI response');
+      }
+      
       setGenerationProgress(66);
-      const humanizedResponse = await humanizeResponse(aiResponse, undetectableApiKey);
+      let humanizedResponse: string;
+      try {
+        humanizedResponse = await humanizeResponse(aiResponse, undetectableApiKey, 50); // 50 is the default strength
+      } catch (humanizeError) {
+        console.error('Error humanizing response:', humanizeError);
+        humanizedResponse = "Failed to humanize the AI response. Using original response.";
+      }
       
       setGenerationProgress(90);
-      const aiScore = await detectAI(humanizedResponse);
-      const originalAiScore = await detectAI(aiResponse);
+      const aiScore = await detectAI(humanizedResponse, saplingApiKey);
+      const originalAiScore = await detectAI(aiResponse, saplingApiKey);
 
       const newAiMessage: Message = { 
         type: 'ai', 
@@ -104,8 +117,8 @@ export default function AIResponseGenerator({
       console.error('Error generating response:', error);
       setMessages(prev => [...prev, { 
         type: 'ai', 
-        content: 'An error occurred while generating the response.', 
-        humanizedContent: 'An error occurred while generating the response.', 
+        content: 'An error occurred while generating the response. Please check your API keys and try again.', 
+        humanizedContent: 'An error occurred while generating the response. Please check your API keys and try again.', 
         aiScore: 0, 
         originalAiScore: 0, 
         showAI: false 
@@ -132,30 +145,26 @@ export default function AIResponseGenerator({
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message, index) => (
-          <div key={index} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[70%] p-3 rounded-lg ${
-              message.type === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-            }`}>
-              <p>{message.showAI ? message.content : message.humanizedContent}</p>
-              {message.type === 'ai' && (
-                <>
-                  <p className="text-xs mt-2 text-gray-600 dark:text-gray-400">
-                    AI Score: {message.showAI 
-                      ? `${(message.originalAiScore * 100).toFixed(2)}%`
-                      : `${(message.aiScore * 100).toFixed(2)}%`
-                    }
-                  </p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleAIView(index)}
-                    className="mt-2 text-xs"
-                  >
-                    {message.showAI ? 'Show Humanized' : 'Show AI'}
-                  </Button>
-                </>
-              )}
-            </div>
+          <div key={index} className={`message ${message.type === 'user' ? 'message-user' : 'message-ai'}`}>
+            <p>{message.showAI ? message.content : message.humanizedContent}</p>
+            {message.type === 'ai' && (
+              <>
+                <p className="text-xs mt-2 opacity-75">
+                  AI Score: {message.showAI 
+                    ? `${(message.originalAiScore * 100).toFixed(2)}%`
+                    : `${(message.aiScore * 100).toFixed(2)}%`
+                  }
+                </p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => toggleAIView(index)}
+                  className="mt-2 text-xs"
+                >
+                  {message.showAI ? 'Show Humanized' : 'Show AI'}
+                </Button>
+              </>
+            )}
           </div>
         ))}
       </div>
@@ -177,7 +186,7 @@ export default function AIResponseGenerator({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message or upload a file..."
-            className="pr-24 resize-none"
+            className="input-primary pr-24 resize-none"
             rows={3}
           />
           <div className="absolute right-2 bottom-2 flex space-x-2">
@@ -191,8 +200,8 @@ export default function AIResponseGenerator({
             </Button>
             <Button 
               type="submit" 
-              disabled={isGenerating} 
-              size="sm"
+              disabled={isGenerating}
+              className="btn-primary"
             >
               {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>

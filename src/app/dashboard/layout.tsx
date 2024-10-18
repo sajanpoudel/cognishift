@@ -1,5 +1,5 @@
 import { UserButton } from "@clerk/nextjs";
-import ThemeToggle from "@/components/ThemeToggle"
+import ThemeToggle from "@/components/ThemeToggle";
 import Sidebar from "@/components/Sidebar";
 
 export default function DashboardLayout({
