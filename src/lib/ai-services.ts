@@ -50,7 +50,6 @@ export async function humanizeResponse(text: string, apiKey: string, strength: n
     return "Output needs to be more than 50 characters to humanize.";
   }
 
-  console.log('Sending request to Undetectable AI:', text);
   const response = await fetch('https://humanize.undetectable.ai/submit', {
     method: 'POST',
     headers: {
@@ -67,12 +66,10 @@ export async function humanizeResponse(text: string, apiKey: string, strength: n
   });
     
   const responseData = await response.text();
-  console.log('Response from Undetectable AI:', response.status, responseData);
-    
   if (!response.ok) {
     throw new Error(`Failed to humanize response: ${response.status} ${responseData}`);
-    }
-    
+  }
+
   const data = JSON.parse(responseData);
 
   // The API returns a document ID, so we need to fetch the result
