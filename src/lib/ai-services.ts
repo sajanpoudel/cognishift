@@ -84,12 +84,13 @@ function mapStrengthToAPI(strength: number): string {
   return "More Human";
 }
 
-async function fetchHumanizedResult(documentId: string, apiKey: string) {
-  let retries = 0;
-  const maxRetries = 10;
-  const retryDelay = 2000; // 2 seconds
+const MAX_RETRIES = 10;
+const RETRY_DELAY_MS = 2000;
 
-  while (retries < maxRetries) {
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function fetchHumanizedResult(documentId: string, apiKey: string) {
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     const response = await fetch('https://humanize.undetectable.ai/document', {
       method: 'POST',
       headers: {
@@ -110,8 +111,7 @@ async function fetchHumanizedResult(documentId: string, apiKey: string) {
     }
 
     // If output is not ready, wait and retry
-    await new Promise(resolve => setTimeout(resolve, retryDelay));
-    retries++;
+    await sleep(RETRY_DELAY_MS);
   }
 
   throw new Error('Timed out waiting for humanized result');
