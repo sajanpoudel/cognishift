@@ -27,24 +27,35 @@ CogniShift is an advanced web application that leverages multiple AI models to g
 
 ## Getting Started
 
-1. Clone the repository:   ```
-   git clone https://github.com/your-username/cognishift.git
-   cd cognishift   ```
+1. Clone the repository:
 
-2. Install dependencies:   ```
-   npm install   ```
+   ```
+   git clone https://github.com/sajanpoudel/cognishift.git
+   cd cognishift
+   ```
 
-3. Set up environment variables:
-   Create a `.env.local` file in the root directory and add the following variables:   ```
+2. Install dependencies:
+
+   ```
+   npm install
+   ```
+
+3. Set up environment variables. Copy `.env.example` to `.env.local` and fill in your own values:
+
+   ```
    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
    CLERK_SECRET_KEY=your_clerk_secret_key
    NEXT_PUBLIC_UNDETECTABLE_AI_API_KEY=your_undetectable_ai_api_key
    NEXT_PUBLIC_OPENAI_API_KEY=your_openai_api_key
    NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
-   NEXT_PUBLIC_SAPLING_AI_API_KEY=your_sapling_ai_api_key   ```
+   NEXT_PUBLIC_SAPLING_AI_API_KEY=your_sapling_ai_api_key
+   ```
 
-4. Run the development server:   ```
-   npm run dev   ```
+4. Run the development server:
+
+   ```
+   npm run dev
+   ```
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
 
