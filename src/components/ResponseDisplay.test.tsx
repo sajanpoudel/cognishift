@@ -9,4 +9,9 @@ describe('ResponseDisplay', () => {
     render(<ResponseDisplay response={response} />);
     expect(screen.getByText('Original text')).toBeInTheDocument();
   });
+
+  it('shows the humanized response', () => {
+    render(<ResponseDisplay response={response} />);
+    expect(screen.getByText('Humanized text')).toBeInTheDocument();
+  });
 });
