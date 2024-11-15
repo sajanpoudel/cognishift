@@ -14,4 +14,9 @@ describe('ResponseDisplay', () => {
     render(<ResponseDisplay response={response} />);
     expect(screen.getByText('Humanized text')).toBeInTheDocument();
   });
+
+  it('shows the score as a percentage with two decimals', () => {
+    render(<ResponseDisplay response={response} />);
+    expect(screen.getByText('12.34% AI-generated')).toBeInTheDocument();
+  });
 });
