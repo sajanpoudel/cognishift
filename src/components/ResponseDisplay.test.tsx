@@ -19,4 +19,9 @@ describe('ResponseDisplay', () => {
     render(<ResponseDisplay response={response} />);
     expect(screen.getByText('12.34% AI-generated')).toBeInTheDocument();
   });
+
+  it('hides the score section when there is no score', () => {
+    render(<ResponseDisplay response={{ ...response, aiScore: null }} />);
+    expect(screen.queryByText('AI Detection Score:')).not.toBeInTheDocument();
+  });
 });
