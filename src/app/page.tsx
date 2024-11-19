@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import LandingPage from '@/components/LandingPage';
 
-
-
 export default function Home() {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useUser();
