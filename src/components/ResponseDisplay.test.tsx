@@ -24,4 +24,9 @@ describe('ResponseDisplay', () => {
     render(<ResponseDisplay response={{ ...response, aiScore: null }} />);
     expect(screen.queryByText('AI Detection Score:')).not.toBeInTheDocument();
   });
+
+  it('shows a score of zero', () => {
+    render(<ResponseDisplay response={{ ...response, aiScore: 0 }} />);
+    expect(screen.getByText('0.00% AI-generated')).toBeInTheDocument();
+  });
 });
