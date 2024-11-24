@@ -25,13 +25,13 @@ interface AIResponseGeneratorProps {
   saplingApiKey: string;
 }
 
-export default function AIResponseGenerator({ 
-  chatId, 
-  selectedModel, 
+export default function AIResponseGenerator({
+  chatId,
+  selectedModel,
   undetectableApiKey,
   openAIApiKey,
   geminiApiKey,
-  saplingApiKey
+  saplingApiKey,
 }: AIResponseGeneratorProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -63,15 +63,15 @@ export default function AIResponseGenerator({
 
     setIsGenerating(true);
     setGenerationProgress(0);
-    const newUserMessage: Message = { 
-      type: 'user', 
-      content: input || `[File: ${file?.name}]`, 
-      humanizedContent: input || `[File: ${file?.name}]`, 
-      aiScore: 0, 
-      originalAiScore: 0, 
-      showAI: false 
+    const newUserMessage: Message = {
+      type: 'user',
+      content: input || `[File: ${file?.name}]`,
+      humanizedContent: input || `[File: ${file?.name}]`,
+      aiScore: 0,
+      originalAiScore: 0,
+      showAI: false,
     };
-    setMessages(prev => [...prev, newUserMessage]);
+    setMessages((prev) => [...prev, newUserMessage]);
     setInput('');
     setFile(null);
 
@@ -79,49 +79,54 @@ export default function AIResponseGenerator({
       setGenerationProgress(33);
       const aiResponse = await generateAIResponse(
         input || (file ? await file.text() : ''),
-        selectedModel, 
+        selectedModel,
         openAIApiKey || '',
         geminiApiKey || ''
       );
-      
+
       if (!aiResponse) {
         throw new Error('Failed to generate AI response');
       }
-      
+
       setGenerationProgress(66);
       let humanizedResponse: string;
       try {
         humanizedResponse = await humanizeResponse(aiResponse, undetectableApiKey, 50);
       } catch (humanizeError) {
         console.error('Error humanizing response:', humanizeError);
-        humanizedResponse = "Failed to humanize the AI response. Using original response.";
+        humanizedResponse = 'Failed to humanize the AI response. Using original response.';
       }
-      
+
       setGenerationProgress(90);
       const aiScore = await detectAI(humanizedResponse, saplingApiKey);
       const originalAiScore = await detectAI(aiResponse, saplingApiKey);
 
-      const newAiMessage: Message = { 
-        type: 'ai', 
-        content: aiResponse, 
-        humanizedContent: humanizedResponse, 
+      const newAiMessage: Message = {
+        type: 'ai',
+        content: aiResponse,
+        humanizedContent: humanizedResponse,
         aiScore: aiScore,
         originalAiScore: originalAiScore,
-        showAI: false 
+        showAI: false,
       };
-      setMessages(prev => [...prev, newAiMessage]);
+      setMessages((prev) => [...prev, newAiMessage]);
 
       saveChatHistory(chatId, [...messages, newUserMessage, newAiMessage]);
     } catch (error) {
       console.error('Error generating response:', error);
-      setMessages(prev => [...prev, { 
-        type: 'ai', 
-        content: 'An error occurred while generating the response. Please check your API keys and try again.', 
-        humanizedContent: 'An error occurred while generating the response. Please check your API keys and try again.', 
-        aiScore: 0, 
-        originalAiScore: 0, 
-        showAI: false 
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: 'ai',
+          content:
+            'An error occurred while generating the response. Please check your API keys and try again.',
+          humanizedContent:
+            'An error occurred while generating the response. Please check your API keys and try again.',
+          aiScore: 0,
+          originalAiScore: 0,
+          showAI: false,
+        },
+      ]);
     } finally {
       setIsGenerating(false);
       setGenerationProgress(100);
@@ -135,24 +140,27 @@ export default function AIResponseGenerator({
   };
 
   const toggleAIView = (index: number) => {
-    setMessages(prev => prev.map((msg, i) => 
-      i === index ? { ...msg, showAI: !msg.showAI } : msg
-    ));
+    setMessages((prev) =>
+      prev.map((msg, i) => (i === index ? { ...msg, showAI: !msg.showAI } : msg))
+    );
   };
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message, index) => (
-          <div key={index} className={`message ${message.type === 'user' ? 'message-user' : 'message-ai'}`}>
+          <div
+            key={index}
+            className={`message ${message.type === 'user' ? 'message-user' : 'message-ai'}`}
+          >
             <p>{message.showAI ? message.content : message.humanizedContent}</p>
             {message.type === 'ai' && (
               <>
                 <p className="text-xs mt-2 opacity-75">
-                  AI Score: {message.showAI 
+                  AI Score:{' '}
+                  {message.showAI
                     ? `${(message.originalAiScore * 100).toFixed(2)}%`
-                    : `${(message.aiScore * 100).toFixed(2)}%`
-                  }
+                    : `${(message.aiScore * 100).toFixed(2)}%`}
                 </p>
                 <Button
                   variant="ghost"
@@ -172,9 +180,13 @@ export default function AIResponseGenerator({
         <div className="p-4">
           <Progress value={generationProgress} className="w-full" />
           <p className="text-sm text-center mt-2 text-gray-600 dark:text-gray-400">
-            {generationProgress < 33 ? 'Generating AI response...' :
-             generationProgress < 66 ? 'Humanizing response...' :
-             generationProgress < 90 ? 'Verifying AI presence...' : 'Finalizing...'}
+            {generationProgress < 33
+              ? 'Generating AI response...'
+              : generationProgress < 66
+                ? 'Humanizing response...'
+                : generationProgress < 90
+                  ? 'Verifying AI presence...'
+                  : 'Finalizing...'}
           </p>
         </div>
       )}
@@ -197,20 +209,15 @@ export default function AIResponseGenerator({
             >
               <Upload className="h-4 w-4" />
             </Button>
-            <Button 
-              type="submit" 
-              disabled={isGenerating}
-              className="btn-primary"
-            >
-              {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            <Button type="submit" disabled={isGenerating} className="btn-primary">
+              {isGenerating ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
             </Button>
           </div>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            className="hidden"
-          />
+          <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
         </div>
       </form>
     </div>
