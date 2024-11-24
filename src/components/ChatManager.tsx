@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useCallback } from 'react';
-import { UserButton } from "@clerk/nextjs";
+import { UserButton } from '@clerk/nextjs';
 import AIResponseGenerator from '@/components/AIResponseGenerator';
 import Sidebar from '@/components/Sidebar';
 import { Menu, X, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import ThemeToggle from "@/components/ThemeToggle";
+import ThemeToggle from '@/components/ThemeToggle';
 import ModelSelector from '@/components/ModelSelector';
 import {
   Dialog,
@@ -16,11 +16,11 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogDescription,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import Image from 'next/image';
-import Logo from '@/assets/logo.png'
+import Logo from '@/assets/logo.png';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware'
+import { persist } from 'zustand/middleware';
 
 interface Chat {
   id: string;
@@ -67,9 +67,10 @@ const useChatManagerStore = create<ChatManagerState>()(
       geminiApiKey: '',
       saplingApiKey: '',
       isSettingsOpen: false,
-      setFolders: (folders) => set((state) => ({ 
-        folders: typeof folders === 'function' ? folders(state.folders) : folders 
-      })),
+      setFolders: (folders) =>
+        set((state) => ({
+          folders: typeof folders === 'function' ? folders(state.folders) : folders,
+        })),
       setActiveChat: (activeChat) => set({ activeChat }),
       setIsSidebarOpen: (isSidebarOpen) => set({ isSidebarOpen }),
       setSelectedModel: (selectedModel) => set({ selectedModel }),
@@ -108,36 +109,37 @@ export default function ChatManager() {
     setIsSettingsOpen,
   } = useChatManagerStore();
 
-  const createNewChat = useCallback((folderId: string) => {
-    setFolders((prevFolders: Folder[]) => {
-      const folder = prevFolders.find(f => f.id === folderId);
-      if (!folder) return prevFolders;
-      
-      const newChat: Chat = { 
-        id: Date.now().toString(), 
-        name: `Chat ${folder.chats.length + 1}` 
-      };
-      
-      return prevFolders.map(f => 
-        f.id === folderId 
-          ? { ...f, chats: [...f.chats, newChat] }
-          : f
-      );
-    });
-    
-    // Move setActiveChat outside the callback to avoid closure issues
-    const newChatId = Date.now().toString();
-    setActiveChat(newChatId);
-  }, [setFolders, setActiveChat]);
+  const createNewChat = useCallback(
+    (folderId: string) => {
+      setFolders((prevFolders: Folder[]) => {
+        const folder = prevFolders.find((f) => f.id === folderId);
+        if (!folder) return prevFolders;
+
+        const newChat: Chat = {
+          id: Date.now().toString(),
+          name: `Chat ${folder.chats.length + 1}`,
+        };
+
+        return prevFolders.map((f) =>
+          f.id === folderId ? { ...f, chats: [...f.chats, newChat] } : f
+        );
+      });
+
+      // Move setActiveChat outside the callback to avoid closure issues
+      const newChatId = Date.now().toString();
+      setActiveChat(newChatId);
+    },
+    [setFolders, setActiveChat]
+  );
 
   useEffect(() => {
     const savedFolders = localStorage.getItem('folders');
     if (savedFolders) {
       const parsedFolders = JSON.parse(savedFolders);
       setFolders(parsedFolders);
-      
+
       const allChatsFolder = parsedFolders.find((folder: Folder) => folder.id === 'default');
-      
+
       if (allChatsFolder && allChatsFolder.chats.length > 0) {
         setActiveChat(allChatsFolder.chats[0].id);
       } else {
@@ -176,20 +178,22 @@ export default function ChatManager() {
 
   return (
     <div className="flex h-screen bg-white dark:bg-gray-700">
-      <div className={`${isSidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 ease-in-out bg-gray-200 dark:bg-gray-800`}>
+      <div
+        className={`${isSidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 ease-in-out bg-gray-200 dark:bg-gray-800`}
+      >
         <div className="p-4 flex items-center justify-left bg-gray-200 dark:bg-gray-800">
-          <Image 
-            src={Logo} 
-            alt="Cognishift Logo" 
-            width={40} 
+          <Image
+            src={Logo}
+            alt="Cognishift Logo"
+            width={40}
             height={40}
             style={{ width: 'auto', height: '40px' }}
           />
           {isSidebarOpen && <span className="font-bold text-lg">CogniShift</span>}
         </div>
-        <Sidebar 
-          folders={folders} 
-          setFolders={setFolders} 
+        <Sidebar
+          folders={folders}
+          setFolders={setFolders}
           activeChat={activeChat}
           setActiveChat={setActiveChat}
           createNewChat={createNewChat}
@@ -275,7 +279,9 @@ export default function ChatManager() {
                         className="mt-1"
                       />
                     </div>
-                    <Button onClick={saveSettings} className="w-full">Save Settings</Button>
+                    <Button onClick={saveSettings} className="w-full">
+                      Save Settings
+                    </Button>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -285,8 +291,8 @@ export default function ChatManager() {
           </header>
           <main className="flex-1 overflow-hidden p-6 bg-white dark:bg-gray-700">
             {activeChat ? (
-              <AIResponseGenerator 
-                chatId={activeChat} 
+              <AIResponseGenerator
+                chatId={activeChat}
                 selectedModel={selectedModel}
                 undetectableApiKey={undetectableApiKey}
                 openAIApiKey={openAIApiKey}
