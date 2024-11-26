@@ -29,4 +29,10 @@ describe('ResponseDisplay', () => {
     render(<ResponseDisplay response={{ ...response, aiScore: 0 }} />);
     expect(screen.getByText('0.00% AI-generated')).toBeInTheDocument();
   });
+
+  it('labels both texts', () => {
+    render(<ResponseDisplay response={response} />);
+    expect(screen.getByText('Original Response:')).toBeInTheDocument();
+    expect(screen.getByText('Humanized Response:')).toBeInTheDocument();
+  });
 });
