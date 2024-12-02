@@ -7,4 +7,9 @@ describe('ModelSelector', () => {
     render(<ModelSelector selectedModel="openai" onSelectModel={vi.fn()} />);
     expect(screen.getByRole('combobox')).toHaveTextContent('OpenAI');
   });
+
+  it('shows Gemini when it is selected', () => {
+    render(<ModelSelector selectedModel="gemini" onSelectModel={vi.fn()} />);
+    expect(screen.getByRole('combobox')).toHaveTextContent('Gemini');
+  });
 });
