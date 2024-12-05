@@ -31,7 +31,7 @@ export default function ModelSelector({ selectedModel, onSelectModel }: ModelSel
           className="w-[200px] justify-between shadow-lg hover:shadow-xl transition-shadow"
         >
           <Bot className="mr-2 h-4 w-4" />
-          {models.find(model => model.id === selectedModel)?.name || 'Select Model'}
+          {models.find((model) => model.id === selectedModel)?.name || 'Select Model'}
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
