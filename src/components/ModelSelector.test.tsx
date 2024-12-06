@@ -12,4 +12,9 @@ describe('ModelSelector', () => {
     render(<ModelSelector selectedModel="gemini" onSelectModel={vi.fn()} />);
     expect(screen.getByRole('combobox')).toHaveTextContent('Gemini');
   });
+
+  it('asks to select a model when the id is unknown', () => {
+    render(<ModelSelector selectedModel="other" onSelectModel={vi.fn()} />);
+    expect(screen.getByRole('combobox')).toHaveTextContent('Select Model');
+  });
 });
