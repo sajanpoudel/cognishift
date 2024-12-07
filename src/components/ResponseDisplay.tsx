@@ -20,7 +20,9 @@ export default function ResponseDisplay({ response }: ResponseDisplayProps) {
       {response.aiScore !== null && (
         <div>
           <h3 className="font-semibold">AI Detection Score:</h3>
-          <p className="p-2 bg-secondary rounded-md">{(response.aiScore * 100).toFixed(2)}% AI-generated</p>
+          <p className="p-2 bg-secondary rounded-md">
+            {(response.aiScore * 100).toFixed(2)}% AI-generated
+          </p>
         </div>
       )}
     </div>
