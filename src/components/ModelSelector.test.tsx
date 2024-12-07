@@ -17,4 +17,9 @@ describe('ModelSelector', () => {
     render(<ModelSelector selectedModel="other" onSelectModel={vi.fn()} />);
     expect(screen.getByRole('combobox')).toHaveTextContent('Select Model');
   });
+
+  it('starts closed', () => {
+    render(<ModelSelector selectedModel="openai" onSelectModel={vi.fn()} />);
+    expect(screen.getByRole('combobox')).toHaveAttribute('aria-expanded', 'false');
+  });
 });
