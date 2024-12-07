@@ -28,7 +28,14 @@ interface SidebarProps {
   createNewChat: (folderId: string) => void;
 }
 
-export default function Sidebar({ isOpen, folders, setFolders, activeChat, setActiveChat, createNewChat }: SidebarProps) {
+export default function Sidebar({
+  isOpen,
+  folders,
+  setFolders,
+  activeChat,
+  setActiveChat,
+  createNewChat,
+}: SidebarProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
 
@@ -48,19 +55,24 @@ export default function Sidebar({ isOpen, folders, setFolders, activeChat, setAc
     localStorage.setItem('folders', JSON.stringify(folders));
   }, [folders]);
 
-  const toggleFolder = useCallback((folderId: string) => {
-    setFolders(prevFolders => prevFolders.map(folder => 
-      folder.id === folderId ? { ...folder, isExpanded: !folder.isExpanded } : folder
-    ));
-  }, [setFolders]);
+  const toggleFolder = useCallback(
+    (folderId: string) => {
+      setFolders((prevFolders) =>
+        prevFolders.map((folder) =>
+          folder.id === folderId ? { ...folder, isExpanded: !folder.isExpanded } : folder
+        )
+      );
+    },
+    [setFolders]
+  );
 
   const addFolder = useCallback(() => {
     const folderNumbers = folders
-      .map(folder => {
+      .map((folder) => {
         const match = folder.name.match(/^Folder (\d+)$/);
         return match ? parseInt(match[1], 10) : 0;
       })
-      .filter(num => num > 0);
+      .filter((num) => num > 0);
 
     const nextNumber = folderNumbers.length > 0 ? Math.max(...folderNumbers) + 1 : 1;
 
@@ -70,7 +82,7 @@ export default function Sidebar({ isOpen, folders, setFolders, activeChat, setAc
       chats: [],
       isExpanded: false,
     };
-    setFolders(prevFolders => [...prevFolders, newFolder]);
+    setFolders((prevFolders) => [...prevFolders, newFolder]);
   }, [folders, setFolders]);
 
   const startEditing = useCallback((id: string, name: string, event: React.MouseEvent) => {
@@ -81,63 +93,65 @@ export default function Sidebar({ isOpen, folders, setFolders, activeChat, setAc
 
   const finishEditing = useCallback(() => {
     if (editingId) {
-      setFolders(prevFolders => prevFolders.map(folder => {
-        if (folder.id === editingId) {
-          return { ...folder, name: editingName };
-        }
-        return {
-          ...folder,
-          chats: folder.chats.map(chat => 
-            chat.id === editingId ? { ...chat, name: editingName } : chat
-          )
-        };
-      }));
+      setFolders((prevFolders) =>
+        prevFolders.map((folder) => {
+          if (folder.id === editingId) {
+            return { ...folder, name: editingName };
+          }
+          return {
+            ...folder,
+            chats: folder.chats.map((chat) =>
+              chat.id === editingId ? { ...chat, name: editingName } : chat
+            ),
+          };
+        })
+      );
     }
     setEditingId(null);
     setEditingName('');
   }, [editingId, editingName, setFolders]);
 
-  const onDragEnd = useCallback((result: DropResult) => {
-    const { source, destination } = result;
+  const onDragEnd = useCallback(
+    (result: DropResult) => {
+      const { source, destination } = result;
 
-    if (!destination) return;
+      if (!destination) return;
 
-    if (
-      source.droppableId === destination.droppableId &&
-      source.index === destination.index
-    ) {
-      return;
-    }
+      if (source.droppableId === destination.droppableId && source.index === destination.index) {
+        return;
+      }
 
-    setFolders(prevFolders => {
-      const newFolders = [...prevFolders];
-      const sourceFolder = newFolders.find(f => f.id === source.droppableId);
-      const destFolder = newFolders.find(f => f.id === destination.droppableId);
+      setFolders((prevFolders) => {
+        const newFolders = [...prevFolders];
+        const sourceFolder = newFolders.find((f) => f.id === source.droppableId);
+        const destFolder = newFolders.find((f) => f.id === destination.droppableId);
 
-      if (!sourceFolder || !destFolder) return prevFolders;
+        if (!sourceFolder || !destFolder) return prevFolders;
 
-      const [movedChat] = sourceFolder.chats.splice(source.index, 1);
-      destFolder.chats.splice(destination.index, 0, movedChat);
+        const [movedChat] = sourceFolder.chats.splice(source.index, 1);
+        destFolder.chats.splice(destination.index, 0, movedChat);
 
-      return newFolders;
-    });
-  }, [setFolders]);
+        return newFolders;
+      });
+    },
+    [setFolders]
+  );
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <div className={`p-4 transition-all duration-300 ${isOpen ? 'w-64' : 'w-16'}`}>
         {isOpen && (
           <>
-            <Button 
-              onClick={addFolder} 
-              variant="outline" 
+            <Button
+              onClick={addFolder}
+              variant="outline"
               className="mb-4 w-full flex items-center justify-start"
             >
               <Folder className="h-4 w-4 mr-2" />
               New Folder
             </Button>
-            
-            {folders.map(folder => (
+
+            {folders.map((folder) => (
               <StrictModeDroppable key={folder.id} droppableId={folder.id}>
                 {(provided) => (
                   <div {...provided.droppableProps} ref={provided.innerRef}>
@@ -146,7 +160,11 @@ export default function Sidebar({ isOpen, folders, setFolders, activeChat, setAc
                         onClick={() => toggleFolder(folder.id)}
                         className="flex items-center w-full p-2 hover:bg-accent rounded-md cursor-pointer"
                       >
-                        {folder.isExpanded ? <ChevronDown className="mr-2 h-4 w-4" /> : <ChevronRight className="mr-2 h-4 w-4" />}
+                        {folder.isExpanded ? (
+                          <ChevronDown className="mr-2 h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="mr-2 h-4 w-4" />
+                        )}
                         <Folder className="mr-2 h-4 w-4" />
                         {editingId === folder.id ? (
                           <Input
@@ -180,7 +198,7 @@ export default function Sidebar({ isOpen, folders, setFolders, activeChat, setAc
                           </>
                         )}
                       </div>
-                      
+
                       {folder.isExpanded && (
                         <div className="ml-4 mt-2">
                           {folder.chats.map((chat, index) => (
@@ -191,7 +209,7 @@ export default function Sidebar({ isOpen, folders, setFolders, activeChat, setAc
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
                                   className={`flex items-center w-full py-1 px-2 mb-1 rounded-md cursor-pointer ${
-                                    activeChat === chat.id ? "bg-accent" : "hover:bg-accent"
+                                    activeChat === chat.id ? 'bg-accent' : 'hover:bg-accent'
                                   }`}
                                   onClick={() => setActiveChat(chat.id)}
                                 >
@@ -207,7 +225,9 @@ export default function Sidebar({ isOpen, folders, setFolders, activeChat, setAc
                                     />
                                   ) : (
                                     <>
-                                      <span className="flex-grow text-sm truncate">{chat.name}</span>
+                                      <span className="flex-grow text-sm truncate">
+                                        {chat.name}
+                                      </span>
                                       <Button
                                         variant="ghost"
                                         size="sm"
