@@ -16,4 +16,10 @@ describe('ThemeToggle', () => {
     const { container } = render(<ThemeToggle />);
     expect(container.querySelector('svg.lucide-moon')).not.toBeNull();
   });
+
+  it('switches to the dark theme when clicked', () => {
+    render(<ThemeToggle />);
+    fireEvent.click(screen.getByRole('button'));
+    expect(setTheme).toHaveBeenCalledWith('dark');
+  });
 });
