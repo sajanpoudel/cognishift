@@ -22,4 +22,10 @@ describe('ThemeToggle', () => {
     fireEvent.click(screen.getByRole('button'));
     expect(setTheme).toHaveBeenCalledWith('dark');
   });
+
+  it('shows a sun in the dark theme', () => {
+    theme = 'dark';
+    const { container } = render(<ThemeToggle />);
+    expect(container.querySelector('svg.lucide-sun')).not.toBeNull();
+  });
 });
