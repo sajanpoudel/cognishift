@@ -28,4 +28,11 @@ describe('ThemeToggle', () => {
     const { container } = render(<ThemeToggle />);
     expect(container.querySelector('svg.lucide-sun')).not.toBeNull();
   });
+
+  it('switches back to the light theme', () => {
+    theme = 'dark';
+    render(<ThemeToggle />);
+    fireEvent.click(screen.getByRole('button'));
+    expect(setTheme).toHaveBeenCalledWith('light');
+  });
 });
