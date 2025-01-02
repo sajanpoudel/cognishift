@@ -3,13 +3,13 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const cache = new Map();
 
-const OPENAI_MODEL = "gpt-3.5-turbo";
-const GEMINI_MODEL = "gemini-pro";
+const OPENAI_MODEL = 'gpt-3.5-turbo';
+const GEMINI_MODEL = 'gemini-pro';
 
 export async function generateAIResponse(
-  prompt: string, 
-  model: string, 
-  openAIApiKey: string, 
+  prompt: string,
+  model: string,
+  openAIApiKey: string,
   geminiApiKey: string
 ) {
   const cacheKey = `generateAIResponse-${model}-${prompt}`;
@@ -22,7 +22,7 @@ export async function generateAIResponse(
     if (!openAIApiKey) throw new Error('OpenAI API key is not set');
     const openai = new OpenAI({ apiKey: openAIApiKey, dangerouslyAllowBrowser: true });
     const completion = await openai.chat.completions.create({
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: 'user', content: prompt }],
       model: OPENAI_MODEL,
     });
     response = completion.choices[0].message.content;
@@ -47,24 +47,24 @@ export async function humanizeResponse(text: string, apiKey: string, strength: n
   }
 
   if (text.length < 50) {
-    return "Output needs to be more than 50 characters to humanize.";
+    return 'Output needs to be more than 50 characters to humanize.';
   }
 
   const response = await fetch('https://humanize.undetectable.ai/submit', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'apikey': apiKey,
+      apikey: apiKey,
     },
     body: JSON.stringify({
       content: text,
-      readability: "High School",
-      purpose: "General Writing",
+      readability: 'High School',
+      purpose: 'General Writing',
       strength: mapStrengthToAPI(strength),
-      language: "English"
+      language: 'English',
     }),
   });
-    
+
   const responseData = await response.text();
   if (!response.ok) {
     throw new Error(`Failed to humanize response: ${response.status} ${responseData}`);
@@ -79,9 +79,9 @@ export async function humanizeResponse(text: string, apiKey: string, strength: n
 }
 
 function mapStrengthToAPI(strength: number): string {
-  if (strength < 33) return "Quality";
-  if (strength < 66) return "Balanced";
-  return "More Human";
+  if (strength < 33) return 'Quality';
+  if (strength < 66) return 'Balanced';
+  return 'More Human';
 }
 
 const MAX_RETRIES = 10;
@@ -95,7 +95,7 @@ async function fetchHumanizedResult(documentId: string, apiKey: string) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': apiKey,
+        apikey: apiKey,
       },
       body: JSON.stringify({ id: documentId }),
     });
@@ -130,7 +130,7 @@ export async function detectAI(text: string, saplingApiKey: string) {
     },
     body: JSON.stringify({
       key: saplingApiKey,
-      text: text
+      text: text,
     }),
   });
 
@@ -139,7 +139,7 @@ export async function detectAI(text: string, saplingApiKey: string) {
   }
 
   const data = await response.json();
-  
+
   // Sapling AI returns a score between 0 and 1, where 1 is most likely AI-generated
   const aiScore = data.score;
   cache.set(cacheKey, aiScore);
