@@ -1,10 +1,10 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
 const isPublicRoute = createRouteMatcher([
-  '/', 
-  '/sign-in(.*)', 
+  '/',
+  '/sign-in(.*)',
   '/sign-up(.*)',
-  '/api/trpc/(.*)' // Keep this if you're using tRPC
+  '/api/trpc/(.*)', // Keep this if you're using tRPC
 ]);
 
 export default clerkMiddleware((auth, request) => {
@@ -18,7 +18,5 @@ export default clerkMiddleware((auth, request) => {
 });
 
 export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };
