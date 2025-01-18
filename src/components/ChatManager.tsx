@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/dialog";
 import Image from 'next/image';
 import Logo from '@/assets/logo.png'
+import create from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface Chat {
   id: string;
@@ -31,18 +33,76 @@ interface Folder {
   isExpanded: boolean;
 }
 
+interface ChatManagerState {
+  folders: Folder[];
+  activeChat: string | null;
+  isSidebarOpen: boolean;
+  selectedModel: string;
+  undetectableApiKey: string;
+  openAIApiKey: string;
+  geminiApiKey: string;
+  saplingApiKey: string;
+  isSettingsOpen: boolean;
+  setFolders: (folders: Folder[]) => void;
+  setActiveChat: (activeChat: string | null) => void;
+  setIsSidebarOpen: (isSidebarOpen: boolean) => void;
+  setSelectedModel: (selectedModel: string) => void;
+  setUndetectableApiKey: (undetectableApiKey: string) => void;
+  setOpenAIApiKey: (openAIApiKey: string) => void;
+  setGeminiApiKey: (geminiApiKey: string) => void;
+  setSaplingApiKey: (saplingApiKey: string) => void;
+  setIsSettingsOpen: (isSettingsOpen: boolean) => void;
+}
+
+const useChatManagerStore = create<ChatManagerState>()(
+  persist(
+    (set) => ({
+      folders: [{ id: 'default', name: 'All Chats', chats: [], isExpanded: true }],
+      activeChat: null,
+      isSidebarOpen: true,
+      selectedModel: 'openai',
+      undetectableApiKey: '',
+      openAIApiKey: '',
+      geminiApiKey: '',
+      saplingApiKey: '',
+      isSettingsOpen: false,
+      setFolders: (folders) => set({ folders }),
+      setActiveChat: (activeChat) => set({ activeChat }),
+      setIsSidebarOpen: (isSidebarOpen) => set({ isSidebarOpen }),
+      setSelectedModel: (selectedModel) => set({ selectedModel }),
+      setUndetectableApiKey: (undetectableApiKey) => set({ undetectableApiKey }),
+      setOpenAIApiKey: (openAIApiKey) => set({ openAIApiKey }),
+      setGeminiApiKey: (geminiApiKey) => set({ geminiApiKey }),
+      setSaplingApiKey: (saplingApiKey) => set({ saplingApiKey }),
+      setIsSettingsOpen: (isSettingsOpen) => set({ isSettingsOpen }),
+    }),
+    {
+      name: 'chat-manager-storage',
+    }
+  )
+);
+
 export default function ChatManager() {
-  const [folders, setFolders] = useState<Folder[]>([
-    { id: 'default', name: 'All Chats', chats: [], isExpanded: true }
-  ]);
-  const [activeChat, setActiveChat] = useState<string | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [selectedModel, setSelectedModel] = useState('openai');
-  const [undetectableApiKey, setUndetectableApiKey] = useState('');
-  const [openAIApiKey, setOpenAIApiKey] = useState('');
-  const [geminiApiKey, setGeminiApiKey] = useState('');
-  const [saplingApiKey, setSaplingApiKey] = useState('');
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const {
+    folders,
+    activeChat,
+    isSidebarOpen,
+    selectedModel,
+    undetectableApiKey,
+    openAIApiKey,
+    geminiApiKey,
+    saplingApiKey,
+    isSettingsOpen,
+    setFolders,
+    setActiveChat,
+    setIsSidebarOpen,
+    setSelectedModel,
+    setUndetectableApiKey,
+    setOpenAIApiKey,
+    setGeminiApiKey,
+    setSaplingApiKey,
+    setIsSettingsOpen,
+  } = useChatManagerStore();
 
   const createNewChat = useCallback((folderId: string) => {
     setFolders(prevFolders => {
@@ -63,7 +123,7 @@ export default function ChatManager() {
       setActiveChat(newChat.id);
       return updatedFolders;
     });
-  }, []); // Remove folders from the dependency array
+  }, [setFolders, setActiveChat]);
 
   useEffect(() => {
     const savedFolders = localStorage.getItem('folders');
@@ -82,7 +142,7 @@ export default function ChatManager() {
       setFolders([{ id: 'default', name: 'All Chats', chats: [], isExpanded: true }]);
       createNewChat('default');
     }
-  }, [createNewChat]);
+  }, [createNewChat, setFolders, setActiveChat]);
 
   useEffect(() => {
     localStorage.setItem('folders', JSON.stringify(folders));
@@ -99,7 +159,7 @@ export default function ChatManager() {
     if (savedOpenAIApiKey) setOpenAIApiKey(savedOpenAIApiKey);
     if (savedGeminiApiKey) setGeminiApiKey(savedGeminiApiKey);
     if (savedSaplingApiKey) setSaplingApiKey(savedSaplingApiKey);
-  }, []);
+  }, [setUndetectableApiKey, setOpenAIApiKey, setGeminiApiKey, setSaplingApiKey]);
 
   const saveSettings = useCallback(() => {
     localStorage.setItem('undetectableApiKey', undetectableApiKey);
@@ -107,7 +167,7 @@ export default function ChatManager() {
     localStorage.setItem('geminiApiKey', geminiApiKey);
     localStorage.setItem('saplingApiKey', saplingApiKey);
     setIsSettingsOpen(false);
-  }, [undetectableApiKey, openAIApiKey, geminiApiKey, saplingApiKey]);
+  }, [undetectableApiKey, openAIApiKey, geminiApiKey, saplingApiKey, setIsSettingsOpen]);
 
   return (
     <div className="flex h-screen bg-white dark:bg-gray-700">
