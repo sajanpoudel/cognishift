@@ -8,7 +8,7 @@ CogniShift is an advanced web application that leverages multiple AI models to g
 - **Content Humanization**: Utilizes Undetectable AI to make AI-generated content more human-like.
 - **AI Detection**: Integrates with Sapling AI to detect the likelihood of content being AI-generated.
 - **Chat Management**: Organize conversations into folders and manage multiple chats.
-- **Real-time Content Generation**: Generate AI responses and humanize them in real-time.
+- **Real-time Content Generation**: Generate AI responses and humanize them in real time.
 - **User Authentication**: Secure user authentication powered by Clerk.
 - **Dark Mode**: Toggle between light and dark themes for comfortable viewing.
 - **Responsive Design**: Works seamlessly across desktop and mobile devices.
