@@ -1,19 +1,9 @@
 import * as React from "react"
-import debounce from "lodash.debounce";
 
 import { cn } from "@/lib/utils"
 
 const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
-  ({ className, type, onChange, ...props }, ref) => {
-    const debouncedOnChange = React.useCallback(
-      debounce((event: React.ChangeEvent<HTMLInputElement>) => {
-        if (onChange) {
-          onChange(event);
-        }
-      }, 300),
-      [onChange]
-    );
-
+  ({ className, type, ...props }, ref) => {
     return (
       <input
         type={type}
@@ -22,7 +12,6 @@ const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLI
           className
         )}
         ref={ref}
-        onChange={debouncedOnChange}
         {...props}
       />
     )
