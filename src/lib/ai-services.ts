@@ -47,14 +47,14 @@ export async function humanizeResponse(text: string, apiKey: string, strength: n
       language: "English"
     }),
   });
-
+    
   const responseData = await response.text();
   console.log('Response from Undetectable AI:', response.status, responseData);
-
+    
   if (!response.ok) {
     throw new Error(`Failed to humanize response: ${response.status} ${responseData}`);
-  }
-
+    }
+    
   const data = JSON.parse(responseData);
 
   // The API returns a document ID, so we need to fetch the result

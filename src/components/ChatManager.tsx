@@ -15,9 +15,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import Image from 'next/image';
 import Logo from '@/assets/logo.png'
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware'
 
 interface Chat {
   id: string;
@@ -31,21 +34,82 @@ interface Folder {
   isExpanded: boolean;
 }
 
+interface ChatManagerState {
+  folders: Folder[];
+  activeChat: string | null;
+  isSidebarOpen: boolean;
+  selectedModel: string;
+  undetectableApiKey: string;
+  openAIApiKey: string;
+  geminiApiKey: string;
+  saplingApiKey: string;
+  isSettingsOpen: boolean;
+  setFolders: (folders: Folder[] | ((prev: Folder[]) => Folder[])) => void;
+  setActiveChat: (activeChat: string | null) => void;
+  setIsSidebarOpen: (isSidebarOpen: boolean) => void;
+  setSelectedModel: (selectedModel: string) => void;
+  setUndetectableApiKey: (undetectableApiKey: string) => void;
+  setOpenAIApiKey: (openAIApiKey: string) => void;
+  setGeminiApiKey: (geminiApiKey: string) => void;
+  setSaplingApiKey: (saplingApiKey: string) => void;
+  setIsSettingsOpen: (isSettingsOpen: boolean) => void;
+}
+
+const useChatManagerStore = create<ChatManagerState>()(
+  persist(
+    (set) => ({
+      folders: [{ id: 'default', name: 'All Chats', chats: [], isExpanded: true }],
+      activeChat: null,
+      isSidebarOpen: true,
+      selectedModel: 'openai',
+      undetectableApiKey: '',
+      openAIApiKey: '',
+      geminiApiKey: '',
+      saplingApiKey: '',
+      isSettingsOpen: false,
+      setFolders: (folders) => set((state) => ({ 
+        folders: typeof folders === 'function' ? folders(state.folders) : folders 
+      })),
+      setActiveChat: (activeChat) => set({ activeChat }),
+      setIsSidebarOpen: (isSidebarOpen) => set({ isSidebarOpen }),
+      setSelectedModel: (selectedModel) => set({ selectedModel }),
+      setUndetectableApiKey: (undetectableApiKey) => set(() => ({ undetectableApiKey })),
+      setOpenAIApiKey: (openAIApiKey) => set(() => ({ openAIApiKey })),
+      setGeminiApiKey: (geminiApiKey) => set(() => ({ geminiApiKey })),
+      setSaplingApiKey: (saplingApiKey) => set(() => ({ saplingApiKey })),
+      setIsSettingsOpen: (isSettingsOpen) => set({ isSettingsOpen }),
+    }),
+    {
+      name: 'chat-manager-storage',
+      version: 1,
+    }
+  )
+);
+
 export default function ChatManager() {
-  const [folders, setFolders] = useState<Folder[]>([
-    { id: 'default', name: 'All Chats', chats: [], isExpanded: true }
-  ]);
-  const [activeChat, setActiveChat] = useState<string | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [selectedModel, setSelectedModel] = useState('openai');
-  const [undetectableApiKey, setUndetectableApiKey] = useState('');
-  const [openAIApiKey, setOpenAIApiKey] = useState('');
-  const [geminiApiKey, setGeminiApiKey] = useState('');
-  const [saplingApiKey, setSaplingApiKey] = useState('');
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const {
+    folders,
+    activeChat,
+    isSidebarOpen,
+    selectedModel,
+    undetectableApiKey,
+    openAIApiKey,
+    geminiApiKey,
+    saplingApiKey,
+    isSettingsOpen,
+    setFolders,
+    setActiveChat,
+    setIsSidebarOpen,
+    setSelectedModel,
+    setUndetectableApiKey,
+    setOpenAIApiKey,
+    setGeminiApiKey,
+    setSaplingApiKey,
+    setIsSettingsOpen,
+  } = useChatManagerStore();
 
   const createNewChat = useCallback((folderId: string) => {
-    setFolders(prevFolders => {
+    setFolders((prevFolders: Folder[]) => {
       const folder = prevFolders.find(f => f.id === folderId);
       if (!folder) return prevFolders;
       
@@ -54,16 +118,17 @@ export default function ChatManager() {
         name: `Chat ${folder.chats.length + 1}` 
       };
       
-      const updatedFolders = prevFolders.map(f => 
+      return prevFolders.map(f => 
         f.id === folderId 
           ? { ...f, chats: [...f.chats, newChat] }
           : f
       );
-      
-      setActiveChat(newChat.id);
-      return updatedFolders;
     });
-  }, []); // Remove folders from the dependency array
+    
+    // Move setActiveChat outside the callback to avoid closure issues
+    const newChatId = Date.now().toString();
+    setActiveChat(newChatId);
+  }, [setFolders, setActiveChat]);
 
   useEffect(() => {
     const savedFolders = localStorage.getItem('folders');
@@ -82,7 +147,7 @@ export default function ChatManager() {
       setFolders([{ id: 'default', name: 'All Chats', chats: [], isExpanded: true }]);
       createNewChat('default');
     }
-  }, [createNewChat]);
+  }, [createNewChat, setFolders, setActiveChat]);
 
   useEffect(() => {
     localStorage.setItem('folders', JSON.stringify(folders));
@@ -99,7 +164,7 @@ export default function ChatManager() {
     if (savedOpenAIApiKey) setOpenAIApiKey(savedOpenAIApiKey);
     if (savedGeminiApiKey) setGeminiApiKey(savedGeminiApiKey);
     if (savedSaplingApiKey) setSaplingApiKey(savedSaplingApiKey);
-  }, []);
+  }, [setUndetectableApiKey, setOpenAIApiKey, setGeminiApiKey, setSaplingApiKey]);
 
   const saveSettings = useCallback(() => {
     localStorage.setItem('undetectableApiKey', undetectableApiKey);
@@ -107,13 +172,19 @@ export default function ChatManager() {
     localStorage.setItem('geminiApiKey', geminiApiKey);
     localStorage.setItem('saplingApiKey', saplingApiKey);
     setIsSettingsOpen(false);
-  }, [undetectableApiKey, openAIApiKey, geminiApiKey, saplingApiKey]);
+  }, [undetectableApiKey, openAIApiKey, geminiApiKey, saplingApiKey, setIsSettingsOpen]);
 
   return (
     <div className="flex h-screen bg-white dark:bg-gray-700">
       <div className={`${isSidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 ease-in-out bg-gray-200 dark:bg-gray-800`}>
         <div className="p-4 flex items-center justify-left bg-gray-200 dark:bg-gray-800">
-          <Image src= {Logo} alt="Cognishift Logo" width={40} height={40} />
+          <Image 
+            src={Logo} 
+            alt="Cognishift Logo" 
+            width={40} 
+            height={40}
+            style={{ width: 'auto', height: '40px' }}
+          />
           {isSidebarOpen && <span className="font-bold text-lg">CogniShift</span>}
         </div>
         <Sidebar 
@@ -147,6 +218,9 @@ export default function ChatManager() {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Settings</DialogTitle>
+                    <DialogDescription>
+                      Configure your API keys for different AI services.
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="py-4 space-y-4">
                     <div>
@@ -155,6 +229,7 @@ export default function ChatManager() {
                       </label>
                       <Input
                         id="undetectable-api-key"
+                        type="text"
                         value={undetectableApiKey}
                         onChange={(e) => setUndetectableApiKey(e.target.value)}
                         placeholder="Enter your Undetectable AI API key"
@@ -167,6 +242,7 @@ export default function ChatManager() {
                       </label>
                       <Input
                         id="openai-api-key"
+                        type="text"
                         value={openAIApiKey}
                         onChange={(e) => setOpenAIApiKey(e.target.value)}
                         placeholder="Enter your OpenAI API key"
@@ -179,6 +255,7 @@ export default function ChatManager() {
                       </label>
                       <Input
                         id="gemini-api-key"
+                        type="text"
                         value={geminiApiKey}
                         onChange={(e) => setGeminiApiKey(e.target.value)}
                         placeholder="Enter your Gemini API key"
@@ -191,13 +268,14 @@ export default function ChatManager() {
                       </label>
                       <Input
                         id="sapling-api-key"
+                        type="text"
                         value={saplingApiKey}
                         onChange={(e) => setSaplingApiKey(e.target.value)}
                         placeholder="Enter your Sapling AI API key"
                         className="mt-1"
                       />
                     </div>
-                    <Button onClick={saveSettings}>Save Settings</Button>
+                    <Button onClick={saveSettings} className="w-full">Save Settings</Button>
                   </div>
                 </DialogContent>
               </Dialog>
