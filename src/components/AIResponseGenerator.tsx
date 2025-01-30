@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Loader2, Send, Upload } from 'lucide-react';
 import { generateAIResponse, humanizeResponse, detectAI } from '@/lib/ai-services';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
-import debounce from 'lodash.debounce';
 
 interface Message {
   type: 'user' | 'ai';
@@ -92,7 +91,7 @@ export default function AIResponseGenerator({
       setGenerationProgress(66);
       let humanizedResponse: string;
       try {
-        humanizedResponse = await humanizeResponse(aiResponse, undetectableApiKey, 50); // 50 is the default strength
+        humanizedResponse = await humanizeResponse(aiResponse, undetectableApiKey, 50);
       } catch (humanizeError) {
         console.error('Error humanizing response:', humanizeError);
         humanizedResponse = "Failed to humanize the AI response. Using original response.";
@@ -141,15 +140,6 @@ export default function AIResponseGenerator({
     ));
   };
 
-  const debouncedSetInput = useCallback(
-    debounce((value: string) => setInput(value), 300),
-    []
-  );
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    debouncedSetInput(e.target.value);
-  };
-
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -193,7 +183,7 @@ export default function AIResponseGenerator({
         <div className="relative">
           <Textarea
             value={input}
-            onChange={handleInputChange}
+            onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message or upload a file..."
             className="input-primary pr-24 resize-none"
             rows={3}

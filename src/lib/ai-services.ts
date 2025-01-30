@@ -28,7 +28,7 @@ export async function generateAIResponse(
     const genAI = new GoogleGenerativeAI(geminiApiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-pro"});
     const result = await model.generateContent(prompt);
-    const response = await result.response;
+     response = await result.response;
     response = response.text();
   } else {
     throw new Error('Invalid model selected');
