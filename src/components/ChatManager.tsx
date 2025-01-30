@@ -15,11 +15,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import Image from 'next/image';
 import Logo from '@/assets/logo.png'
-import create from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware'
 
 interface Chat {
   id: string;
@@ -43,7 +44,7 @@ interface ChatManagerState {
   geminiApiKey: string;
   saplingApiKey: string;
   isSettingsOpen: boolean;
-  setFolders: (folders: Folder[]) => void;
+  setFolders: (folders: Folder[] | ((prev: Folder[]) => Folder[])) => void;
   setActiveChat: (activeChat: string | null) => void;
   setIsSidebarOpen: (isSidebarOpen: boolean) => void;
   setSelectedModel: (selectedModel: string) => void;
@@ -66,18 +67,21 @@ const useChatManagerStore = create<ChatManagerState>()(
       geminiApiKey: '',
       saplingApiKey: '',
       isSettingsOpen: false,
-      setFolders: (folders) => set({ folders }),
+      setFolders: (folders) => set((state) => ({ 
+        folders: typeof folders === 'function' ? folders(state.folders) : folders 
+      })),
       setActiveChat: (activeChat) => set({ activeChat }),
       setIsSidebarOpen: (isSidebarOpen) => set({ isSidebarOpen }),
       setSelectedModel: (selectedModel) => set({ selectedModel }),
-      setUndetectableApiKey: (undetectableApiKey) => set({ undetectableApiKey }),
-      setOpenAIApiKey: (openAIApiKey) => set({ openAIApiKey }),
-      setGeminiApiKey: (geminiApiKey) => set({ geminiApiKey }),
-      setSaplingApiKey: (saplingApiKey) => set({ saplingApiKey }),
+      setUndetectableApiKey: (undetectableApiKey) => set(() => ({ undetectableApiKey })),
+      setOpenAIApiKey: (openAIApiKey) => set(() => ({ openAIApiKey })),
+      setGeminiApiKey: (geminiApiKey) => set(() => ({ geminiApiKey })),
+      setSaplingApiKey: (saplingApiKey) => set(() => ({ saplingApiKey })),
       setIsSettingsOpen: (isSettingsOpen) => set({ isSettingsOpen }),
     }),
     {
       name: 'chat-manager-storage',
+      version: 1,
     }
   )
 );
@@ -105,7 +109,7 @@ export default function ChatManager() {
   } = useChatManagerStore();
 
   const createNewChat = useCallback((folderId: string) => {
-    setFolders(prevFolders => {
+    setFolders((prevFolders: Folder[]) => {
       const folder = prevFolders.find(f => f.id === folderId);
       if (!folder) return prevFolders;
       
@@ -114,15 +118,16 @@ export default function ChatManager() {
         name: `Chat ${folder.chats.length + 1}` 
       };
       
-      const updatedFolders = prevFolders.map(f => 
+      return prevFolders.map(f => 
         f.id === folderId 
           ? { ...f, chats: [...f.chats, newChat] }
           : f
       );
-      
-      setActiveChat(newChat.id);
-      return updatedFolders;
     });
+    
+    // Move setActiveChat outside the callback to avoid closure issues
+    const newChatId = Date.now().toString();
+    setActiveChat(newChatId);
   }, [setFolders, setActiveChat]);
 
   useEffect(() => {
@@ -173,7 +178,13 @@ export default function ChatManager() {
     <div className="flex h-screen bg-white dark:bg-gray-700">
       <div className={`${isSidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 ease-in-out bg-gray-200 dark:bg-gray-800`}>
         <div className="p-4 flex items-center justify-left bg-gray-200 dark:bg-gray-800">
-          <Image src= {Logo} alt="Cognishift Logo" width={40} height={40} />
+          <Image 
+            src={Logo} 
+            alt="Cognishift Logo" 
+            width={40} 
+            height={40}
+            style={{ width: 'auto', height: '40px' }}
+          />
           {isSidebarOpen && <span className="font-bold text-lg">CogniShift</span>}
         </div>
         <Sidebar 
@@ -207,6 +218,9 @@ export default function ChatManager() {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Settings</DialogTitle>
+                    <DialogDescription>
+                      Configure your API keys for different AI services.
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="py-4 space-y-4">
                     <div>
@@ -215,6 +229,7 @@ export default function ChatManager() {
                       </label>
                       <Input
                         id="undetectable-api-key"
+                        type="text"
                         value={undetectableApiKey}
                         onChange={(e) => setUndetectableApiKey(e.target.value)}
                         placeholder="Enter your Undetectable AI API key"
@@ -227,6 +242,7 @@ export default function ChatManager() {
                       </label>
                       <Input
                         id="openai-api-key"
+                        type="text"
                         value={openAIApiKey}
                         onChange={(e) => setOpenAIApiKey(e.target.value)}
                         placeholder="Enter your OpenAI API key"
@@ -239,6 +255,7 @@ export default function ChatManager() {
                       </label>
                       <Input
                         id="gemini-api-key"
+                        type="text"
                         value={geminiApiKey}
                         onChange={(e) => setGeminiApiKey(e.target.value)}
                         placeholder="Enter your Gemini API key"
@@ -251,13 +268,14 @@ export default function ChatManager() {
                       </label>
                       <Input
                         id="sapling-api-key"
+                        type="text"
                         value={saplingApiKey}
                         onChange={(e) => setSaplingApiKey(e.target.value)}
                         placeholder="Enter your Sapling AI API key"
                         className="mt-1"
                       />
                     </div>
-                    <Button onClick={saveSettings}>Save Settings</Button>
+                    <Button onClick={saveSettings} className="w-full">Save Settings</Button>
                   </div>
                 </DialogContent>
               </Dialog>
