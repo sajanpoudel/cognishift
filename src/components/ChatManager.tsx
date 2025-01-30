@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { UserButton } from "@clerk/nextjs";
 import AIResponseGenerator from '@/components/AIResponseGenerator';
 import Sidebar from '@/components/Sidebar';
