@@ -14,3 +14,4 @@ jobs:
           node-version: 20
       - run: npm install --ignore-scripts
       - run: npx tsc --noEmit
+      - run: npm run test:ui
